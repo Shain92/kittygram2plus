@@ -1,6 +1,6 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, filters
 from rest_framework.throttling import ScopedRateThrottle
-from rest_framework.pagination import LimitOffsetPagination
+from django_filters.rest_framework import DjangoFilterBackend
 
 
 from .models import Achievement, Cat, User
@@ -20,14 +20,15 @@ class CatViewSet(viewsets.ModelViewSet):
     permission_classes = (OwnerOrReadOnly,)
     throttle_classes = (WorkingHoursRateThrottle, ScopedRateThrottle,)
     throttle_scope = 'low_request'
-    pagination_class = CatsPagination
+    filter_backends = (DjangoFilterBackend,)
+    # pagination_class = CatsPagination
+    pagination_class = None #Временно отключим пагинацию
+    filterset_fields = ('color', 'birth_year')
+    search_fields = ('name',)
 
     def get_permissions(self):
-        # Если в GET-запросе требуется получить информацию об объекте
         if self.action == 'retrieve':
-            # Вернем обновленный перечень используемых пермишенов
             return (ReadOnly(),)
-        # Для остальных ситуаций оставим текущий перечень пермишенов без изменений
         return super().get_permissions()
 
     def perform_create(self, serializer):
